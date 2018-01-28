@@ -123,13 +123,15 @@ SnowDrift.setup = function() {
 	// Prepare world
 	var splitworld = SnowDrift.Resources.world.trim().split("\n");
 	for(index in splitworld) {
-		SnowDrift.State.world.push(splitworld[index].split(""))
+		var line = splitworld[index].split("");
+		for(jndex in line) line[jndex] = parseInt(line[jndex], 36);
+		SnowDrift.State.world.push(line);
 	}
 
 	SnowDrift.State.worldCache = SnowDrift.renderWorld(SnowDrift.State, SnowDrift.Resources);
 
 	// Prepare player
-	SnowDrift.State.player = new SnowDrift.Entities.Player(55, 0);
+	SnowDrift.State.player = new SnowDrift.Entities.Player(60, 0);
 
 	SnowDrift.loop();
 }
