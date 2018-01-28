@@ -99,7 +99,7 @@ SnowDrift.Entities.Player = function(x, y) {
 
 	this.jump = function(state) {
 		if(!this.canJump || this.jumpTimer > 0) return;
-		this.vy -= 0.015;
+		this.vy -= 0.0175;
 		this.canJump = false;
 		this.jumpTimer = 500;
 		this.movementTimer = 250;
@@ -138,7 +138,7 @@ SnowDrift.init = function(context) {
 		messages: [],
 		messageDelay: 0,
 		messageTimer: 0,
-		playerSpeed: 0.006,
+		playerSpeed: 0.0075,
 		upscale: 8,
 		worldCache: null,
 		worldPointer: 0,
@@ -225,7 +225,7 @@ SnowDrift.logic = function(state, context, res) {
 	}
 
 	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 9) {
-		SnowDrift.loadWorld(0); //win
+		SnowDrift.loadWorld(2); //win
 	}
 
 	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 15) {

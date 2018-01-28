@@ -38,7 +38,7 @@ var Resources = {
 						document.head.appendChild(script);
 						return script;
 					case "json":
-						return JSON.parse(Resources.request(input));
+						return JSON.parse(Resources.request(input).replace(/\/\*.*\*\//g, ""));
 					case "xml":
 						return new DOMParser().parseFromString(Resources.request(input), "text/xml");
 					case "csv": case "txt":
