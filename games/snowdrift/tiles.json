@@ -13,5 +13,6 @@
 	{"name": "ship2", "solid": false},
 	{"name": "ship3", "solid": false},
 	{"name": "ship4", "solid": false},
-	{"name": "blank", "solid": true}
+	{"name": "blank", "solid": true},
+	{"name": "next", "solid": false}
 ]

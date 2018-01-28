@@ -10,7 +10,7 @@ var SnowDrift = {
 		player: "player.png",
 		spritesheet: "spritesheet.png",
 		tiles: "tiles.json",
-		worlds: ["world.csv", "blank.csv", "win.csv"]
+		worlds: ["blank.csv", "win.csv", "world.csv", "cave.csv", "station.csv"]
 	},
 	Entities: {}
 };
@@ -141,6 +141,7 @@ SnowDrift.init = function(context) {
 		playerSpeed: 0.006,
 		upscale: 8,
 		worldCache: null,
+		worldPointer: 0,
 	};
 
 	SnowDrift.Resources = Resources.load(SnowDrift.Resources, "games/snowdrift/");
@@ -163,6 +164,7 @@ SnowDrift.init = function(context) {
 }
 
 SnowDrift.loadWorld = function(index) {
+	SnowDrift.State.worldPointer = index;
 	var s = SnowDrift.Resources.worlds[(index + SnowDrift.Resources.worlds.length) % SnowDrift.Resources.worlds.length].trim();
 	var i = s.indexOf("\n");
 	var splits = [s.slice(0,i), s.slice(i+1)];
@@ -197,7 +199,7 @@ SnowDrift.loadWorld = function(index) {
 
 SnowDrift.setup = function() {
 	// Prepare world
-	SnowDrift.loadWorld(0);
+	SnowDrift.loadWorld(2);
 	SnowDrift.loop();
 }
 
@@ -210,7 +212,7 @@ SnowDrift.events = function(state, context, res) {
 	if(Keyboard.once(32) || Keyboard.once(87) || Keyboard.once(38)) state.player.jump(state);
 
 	if(Keyboard.once(82)) {
-		SnowDrift.loadWorld(0);
+		SnowDrift.loadWorld(2);
 	}
 }
 
@@ -219,11 +221,15 @@ SnowDrift.logic = function(state, context, res) {
 	state.player.logic(Timing.delta,state);
 
 	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 1) {
-		SnowDrift.loadWorld(1);
+		SnowDrift.loadWorld(0); //die
 	}
 
 	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 9) {
-		SnowDrift.loadWorld(2);
+		SnowDrift.loadWorld(1); //win
+	}
+
+	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 15) {
+		SnowDrift.loadWorld(state.worldPointer + 1); //next
 	}
 
 	state.messageTimer += Timing.delta;
@@ -269,18 +275,18 @@ SnowDrift.render = function(state, context, res) {
 	context.fillStyle = state.backgroundColor;
 	context.fillRect(0, 0, context.canvas.width, context.canvas.height);
 
-	// Message
-	context.font = (5 * state.size.scale) + "px Arial";
-	context.fillStyle = "#ffffff";
-	context.textAlign = "center"; 
-	context.fillText(state.messages[0], context.canvas.width / 2, 20 * state.size.scale)
-
 	context.drawImage(
 		state.worldCache,
 		(-state.camera.x-1) * state.upscale * state.size.scale + (context.canvas.width) / 2,
 		(-state.camera.y) * state.upscale * state.size.scale + (context.canvas.height) / 2,
 		state.size.scale * state.worldCache.width, state.size.scale * state.worldCache.height
 	);
+
+	// Message
+	context.font = (5 * state.size.scale) + "px Arial";
+	context.fillStyle = "#ffffff";
+	context.textAlign = "center"; 
+	context.fillText(state.messages[0], context.canvas.width / 2, 20 * state.size.scale);
 
 	// Player
 	state.player.render(state, context, res)
