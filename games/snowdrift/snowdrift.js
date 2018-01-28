@@ -10,7 +10,7 @@ var SnowDrift = {
 		player: "player.png",
 		spritesheet: "spritesheet.png",
 		tiles: "tiles.json",
-		worlds: ["blank.csv", "win.csv", "world.csv", "cave.csv", "station.csv"]
+		worlds: ["start.csv", "blank.csv", "win.csv", "world.csv", "cave.csv", "station.csv"]
 	},
 	Entities: {}
 };
@@ -155,7 +155,7 @@ SnowDrift.init = function(context) {
 		SnowDrift.Context.canvas.width  = window.innerWidth;
 		SnowDrift.Context.canvas.height = window.innerHeight;
 		SnowDrift.Context.imageSmoothingEnabled = false; // Resets on resize
-		SnowDrift.State.size.scale = SnowDrift.Context.canvas.width/200;
+		SnowDrift.State.size.scale = Math.min(SnowDrift.Context.canvas.height, SnowDrift.Context.canvas.width)/200;
 	};
 	window.addEventListener("resize", resizefunc);
 	resizefunc();
@@ -176,7 +176,7 @@ SnowDrift.loadWorld = function(index) {
 	SnowDrift.State.messageTimer = 0;
 	SnowDrift.State.messageDelay = parseInt(splitmeta[4]);
 	SnowDrift.State.messages = [];
-	for(var j = 0; j < parseInt(splitmeta[3]); j++) {
+	for(var j = 0; j < parseInt(splitmeta[3]) *2; j++) {
 		var i = splits.indexOf("\n");
 		splits = [splits.slice(0,i), splits.slice(i+1)];
 		SnowDrift.State.messages.push(splits[0]);
@@ -194,12 +194,12 @@ SnowDrift.loadWorld = function(index) {
 	SnowDrift.State.worldCache = SnowDrift.renderWorld(SnowDrift.State, SnowDrift.Resources);
 
 	// Prepare player
-	SnowDrift.State.player = new SnowDrift.Entities.Player(parseInt(splitmeta[0]), parseInt(splitmeta[1]));
+	SnowDrift.State.player = new SnowDrift.Entities.Player(parseFloat(splitmeta[0]), parseFloat(splitmeta[1]));
 }
 
 SnowDrift.setup = function() {
 	// Prepare world
-	SnowDrift.loadWorld(2);
+	SnowDrift.loadWorld(0);
 	SnowDrift.loop();
 }
 
@@ -212,7 +212,7 @@ SnowDrift.events = function(state, context, res) {
 	if(Keyboard.once(32) || Keyboard.once(87) || Keyboard.once(38)) state.player.jump(state);
 
 	if(Keyboard.once(82)) {
-		SnowDrift.loadWorld(2);
+		SnowDrift.loadWorld(3);
 	}
 }
 
@@ -221,11 +221,11 @@ SnowDrift.logic = function(state, context, res) {
 	state.player.logic(Timing.delta,state);
 
 	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 1) {
-		SnowDrift.loadWorld(0); //die
+		SnowDrift.loadWorld(1); //die
 	}
 
 	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 9) {
-		SnowDrift.loadWorld(1); //win
+		SnowDrift.loadWorld(0); //win
 	}
 
 	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 15) {
@@ -233,8 +233,9 @@ SnowDrift.logic = function(state, context, res) {
 	}
 
 	state.messageTimer += Timing.delta;
-	if(state.messageTimer >= state.messageDelay && state.messages.length > 1) {
+	if(state.messageTimer >= state.messageDelay && state.messages.length > 2) {
 		state.messageTimer = 0;
+		state.messages.shift();
 		state.messages.shift();
 	}
 
@@ -286,7 +287,8 @@ SnowDrift.render = function(state, context, res) {
 	context.font = (5 * state.size.scale) + "px Arial";
 	context.fillStyle = "#ffffff";
 	context.textAlign = "center"; 
-	context.fillText(state.messages[0], context.canvas.width / 2, 20 * state.size.scale);
+	context.fillText(state.messages[0], context.canvas.width / 2, 30 * state.size.scale);
+	context.fillText(state.messages[1], context.canvas.width / 2, context.canvas.height - 30 * state.size.scale);
 
 	// Player
 	state.player.render(state, context, res)
