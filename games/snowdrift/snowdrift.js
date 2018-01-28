@@ -25,11 +25,48 @@ SnowDrift.Entities.Particle = function(x, y, vx, vy, ax, ay) {
 
 	this.alive = true;
 
-	this.logic = function(delta) {
+	this.logic = function(delta,state) {
+		var old = {x: this.x, y: this.y};
 		this.x  += this.vx*delta;
 		this.y  += this.vy*delta;
+		this.checkBounds(old, state);
 		this.vx += this.ax*delta;
 		this.vy += this.ay*delta;
+	}
+
+	this.checkBounds = function(old, state) {
+		if(Math.round(this.y) < 0 || Math.ceil(this.y) >= state.world.length) {
+			this.y = old.y;
+			this.vy = 0;
+		}
+		if(Math.round(this.x) < 0 || Math.ceil(this.x) >= state.world[Math.ceil(this.y)].length) {
+			this.x = old.x;
+		}
+
+		// Walls
+		if(
+			Math.round(this.y) >= 0 && Math.ceil(this.y) < state.world.length && 
+			Math.round(this.x) >= 0 && Math.ceil(this.x+1) < state.world[Math.ceil(this.y)].length && 
+			(state.world[Math.round(this.y)][Math.round(this.x+0.125)] > 1 ||
+			state.world[Math.round(this.y)][Math.round(this.x+0.875)] > 1)
+		) {
+			this.x = old.x;
+		}
+
+		// Gravity
+		if(
+			Math.round(this.y) >= 0 && Math.ceil(this.y) < state.world.length && 
+			Math.round(this.x) >= 0 && Math.ceil(this.x+1) < state.world[Math.ceil(this.y)].length && 
+			(
+			(state.world[Math.round(this.y)][Math.round(this.x+0.125)] > 1 ||
+			state.world[Math.round(this.y)][Math.round(this.x+0.625)] > 1)||
+			(state.world[Math.round(this.y)][Math.round(this.x+0.625)] > 1 ||
+			state.world[Math.round(this.y)][Math.round(this.x+0.875)] > 1))
+		) {
+			this.y = old.y;
+			this.x = old.x;
+			this.vy = 0;
+		}
 	}
 }
 
@@ -42,8 +79,8 @@ SnowDrift.Entities.Player = function(x, y) {
 	this.jumpTimer = 0;
 	this.movementDirection = "none";
 
-	this.logic = function(delta) {
-		this.prototype.logic.call(this, delta);
+	this.logic = function(delta,state) {
+		this.prototype.logic.call(this, delta,state);
 		this.movementTimer = Math.max(0, this.movementTimer - delta);
 		this.jumpTimer = Math.max(0, this.jumpTimer - delta);
 		if(this.movementTimer == 0) this.movementDirection = "none";
@@ -53,7 +90,7 @@ SnowDrift.Entities.Player = function(x, y) {
 	this.render = function(state, context, res) {
 		context.drawImage(
 			res.player,
-			8 * {"none":2, "left": 1, "right": 3}[this.movementDirection], 0,
+			8 * {"none": 2, "left": 1, "right": 3}[this.movementDirection], 0,
 			8, 8,
 			(this.x - state.camera.x) + (context.canvas.width - state.size.scale * state.upscale) / 2,
 			(this.y - state.camera.y) + (context.canvas.height - state.size.scale * state.upscale) / 2,
@@ -61,23 +98,27 @@ SnowDrift.Entities.Player = function(x, y) {
 		);
 	}
 
-	this.jump = function() {
+	this.jump = function(state) {
 		if(!this.canJump || this.jumpTimer > 0) return;
 		this.vy -= 0.015;
 		this.canJump = false;
-		this.jumpTimer = 250;
+		this.jumpTimer = 500;
 		this.movementTimer = 250;
 		this.movementDirection = "none";
 	}
 
-	this.left = function(amount) {
+	this.left = function(amount,state) {
+		var old = {x: this.x, y: this.y};
 		this.x -= amount;
+		this.checkBounds(old, state);
 		this.movementTimer = 250;
 		this.movementDirection = "left";
 	}
 
-	this.right = function(amount) {
+	this.right = function(amount,state) {
+		var old = {x: this.x, y: this.y};
 		this.x += amount;
+		this.checkBounds(old, state);
 		this.movementTimer = 250;
 		this.movementDirection = "right";
 	}
@@ -95,7 +136,7 @@ SnowDrift.init = function(context) {
 		camera: {x: 0, y: 0},
 		spritesize: {x: 8, y: 8},
 		backgroundColor: "#3388ff",
-		playerSpeed: 0.01,
+		playerSpeed: 0.005,
 		upscale: 8,
 		worldCache: null,
 	};
@@ -139,10 +180,10 @@ SnowDrift.setup = function() {
 SnowDrift.events = function(state, context, res) {
 	var old = {x: state.player.x, y: state.player.y}
 
-	if(Keyboard.has(65) && !Keyboard.has(68)) state.player.left(state.playerSpeed * Timing.delta); // KeyA
-	if(Keyboard.has(68) && !Keyboard.has(65)) state.player.right(state.playerSpeed * Timing.delta); // KeyD
+	if(Keyboard.has(65) && !Keyboard.has(68)) state.player.left(state.playerSpeed * Timing.delta, state); // KeyA
+	if(Keyboard.has(68) && !Keyboard.has(65)) state.player.right(state.playerSpeed * Timing.delta, state); // KeyD
 
-	if(Keyboard.once(32)) state.player.jump();
+	if(Keyboard.once(32)) state.player.jump(state);
 
 	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 1) {
 		alert("You died.")
@@ -151,51 +192,11 @@ SnowDrift.events = function(state, context, res) {
 	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 9) {
 		alert("You win!")
 	}
-
-	if(Math.round(state.player.y) < 0 || Math.ceil(state.player.y) >= state.world.length) {
-		state.player.y = old.y;
-		state.player.vy = 0;
-	}
-	if(Math.round(state.player.x) < 0 || Math.ceil(state.player.x) >= state.world[Math.ceil(state.player.y)].length) {
-		state.player.x = old.x;
-	}
-
-	if(
-		Math.round(state.player.y) >= 0 && Math.ceil(state.player.y) < state.world.length && 
-		Math.round(state.player.x) >= 0 && Math.ceil(state.player.x+1) < state.world[Math.ceil(state.player.y)].length && 
-		(state.world[Math.round(state.player.y)][Math.round(state.player.x)] > 1 ||
-		state.world[Math.round(state.player.y)][Math.round(state.player.x+1)] > 1)
-	) {
-		state.player.x = old.x;
-		state.player.y = old.y;
-		state.player.vy = 0;
-	}
 }
 
 /* Game update logic */
 SnowDrift.logic = function(state, context, res) {
-	var old = {x: state.player.x, y: state.player.y}
-
-	state.player.logic(Timing.delta);
-
-	if(Math.round(state.player.y) < 0 || Math.ceil(state.player.y) >= state.world.length) {
-		state.player.y = old.y;
-		state.player.vy = 0;
-	}
-	if(Math.round(state.player.x) < 0 || Math.ceil(state.player.x) >= state.world[Math.ceil(state.player.y)].length) {
-		state.player.x = old.x;
-	}
-
-	if(
-		Math.round(state.player.y) >= 0 && Math.ceil(state.player.y) < state.world.length && 
-		Math.round(state.player.x) >= 0 && Math.ceil(state.player.x+1) < state.world[Math.ceil(state.player.y)].length && 
-		(state.world[Math.round(state.player.y)][Math.round(state.player.x)] > 1 ||
-		state.world[Math.round(state.player.y)][Math.round(state.player.x+1)] > 1)
-	) {
-		state.player.x = old.x;
-		state.player.y = old.y;
-		state.player.vy = 0;
-	}
+	state.player.logic(Timing.delta,state);
 
 	state.camera.x = state.player.x;
 	state.camera.y = state.player.y;
