@@ -9,3 +9,4 @@ Tiles
 6. Rock
 7. Snow
 8. Tree stump
+9. Transmitter

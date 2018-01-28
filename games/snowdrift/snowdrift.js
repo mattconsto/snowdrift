@@ -146,6 +146,10 @@ SnowDrift.events = function(state, context, res) {
 		alert("You died.")
 	}
 
+	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 9) {
+		alert("You win!")
+	}
+
 	if(Math.round(state.player.y) < 0 || Math.ceil(state.player.y) >= state.world.length) {
 		state.player.y = old.y;
 		state.player.vy = 0;
