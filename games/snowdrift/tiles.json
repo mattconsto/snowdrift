@@ -1,0 +1,17 @@
+[
+	{"name": "air", "solid": false},
+	{"name": "water", "solid": false},
+	{"name": "rock", "solid": true},
+	{"name": "ice", "solid": true},
+	{"name": "snow", "solid": true},
+	{"name": "crate", "solid": true},
+	{"name": "rock", "solid": true},
+	{"name": "snow", "solid": true},
+	{"name": "stump", "solid": true},
+	{"name": "transmitter", "solid": false},
+	{"name": "ship1", "solid": false},
+	{"name": "ship2", "solid": false},
+	{"name": "ship3", "solid": false},
+	{"name": "ship4", "solid": false},
+	{"name": "blank", "solid": true}
+]

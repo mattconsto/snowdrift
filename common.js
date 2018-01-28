@@ -9,13 +9,19 @@ Keyboard.once = function(code) {
 
 var Timing =  {
 	stamp: window.performance.now(),
+	skip: false, // Pause the game for one frame after tabbing back in.
 	delta: 1000/60,
 	refresh: function() {
 		let temp = window.performance.now();
-		this.delta = temp - this.stamp;
+		this.delta = this.skip ? 0 : (temp - this.stamp);
+		this.skip = false;
 		return this.stamp = temp;
+	},
+	change: function() {
+		Timing.skip = true;
 	}
 }
+window.addEventListener("visibilitychange", Timing.change);
 
 let deepSerializedClone = function() {
 	return JSON.parse(JSON.stringify(this));

@@ -9,6 +9,7 @@ var SnowDrift = {
 	Resources: {
 		player: "player.png",
 		spritesheet: "spritesheet.png",
+		tiles: "tiles.json",
 		worlds: ["world.csv", "blank.csv", "win.csv"]
 	},
 	Entities: {}
@@ -46,8 +47,8 @@ SnowDrift.Entities.Particle = function(x, y, vx, vy, ax, ay) {
 		if(
 			Math.round(this.y) >= 0 && Math.ceil(this.y) < state.world.length && 
 			Math.round(this.x) >= 0 && Math.ceil(this.x+1) < state.world[Math.ceil(this.y)].length && 
-			(state.world[Math.round(this.y)][Math.round(this.x+0.125)] > 1 ||
-			state.world[Math.round(this.y)][Math.round(this.x+0.875)] > 1)
+			(SnowDrift.Resources.tiles[state.world[Math.round(this.y)][Math.round(this.x+0.125)]].solid ||
+			SnowDrift.Resources.tiles[state.world[Math.round(this.y)][Math.round(this.x+0.875)]].solid)
 		) {
 			this.x = old.x;
 		}
@@ -55,12 +56,11 @@ SnowDrift.Entities.Particle = function(x, y, vx, vy, ax, ay) {
 		// Gravity
 		if(
 			Math.round(this.y) >= 0 && Math.ceil(this.y) < state.world.length && 
-			Math.round(this.x) >= 0 && Math.ceil(this.x+1) < state.world[Math.ceil(this.y)].length && 
-			(
-			(state.world[Math.round(this.y)][Math.round(this.x+0.125)] > 1 ||
-			state.world[Math.round(this.y)][Math.round(this.x+0.625)] > 1)||
-			(state.world[Math.round(this.y)][Math.round(this.x+0.625)] > 1 ||
-			state.world[Math.round(this.y)][Math.round(this.x+0.875)] > 1))
+			Math.round(this.x) >= 0 && Math.ceil(this.x+1) < state.world[Math.ceil(this.y)].length && (
+			(SnowDrift.Resources.tiles[state.world[Math.round(this.y)][Math.round(this.x+0.125)]].solid ||
+			SnowDrift.Resources.tiles[state.world[Math.round(this.y)][Math.round(this.x+0.625)]].solid) ||
+			(SnowDrift.Resources.tiles[state.world[Math.round(this.y)][Math.round(this.x+0.625)]].solid ||
+			SnowDrift.Resources.tiles[state.world[Math.round(this.y)][Math.round(this.x+0.875)]].solid))
 		) {
 			this.y = old.y;
 			this.x = old.x;
