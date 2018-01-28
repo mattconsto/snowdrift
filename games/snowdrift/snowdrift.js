@@ -39,11 +39,13 @@ SnowDrift.Entities.Player = function(x, y) {
 
 	this.canJump = true;
 	this.movementTimer = 0;
+	this.jumpTimer = 0;
 	this.movementDirection = "none";
 
 	this.logic = function(delta) {
 		this.prototype.logic.call(this, delta);
 		this.movementTimer = Math.max(0, this.movementTimer - delta);
+		this.jumpTimer = Math.max(0, this.jumpTimer - delta);
 		if(this.movementTimer == 0) this.movementDirection = "none";
 		if(Math.abs(this.vy) < 0.002) this.canJump = true;
 	}
@@ -60,9 +62,10 @@ SnowDrift.Entities.Player = function(x, y) {
 	}
 
 	this.jump = function() {
-		if(!this.canJump) return;
-		this.vy -= 0.02;
+		if(!this.canJump || this.jumpTimer > 0) return;
+		this.vy -= 0.015;
 		this.canJump = false;
+		this.jumpTimer = 250;
 		this.movementTimer = 250;
 		this.movementDirection = "none";
 	}
@@ -91,9 +94,9 @@ SnowDrift.init = function(context) {
 		player: null,
 		camera: {x: 0, y: 0},
 		spritesize: {x: 8, y: 8},
-		backgroundColor: "#0055ff",
+		backgroundColor: "#3388ff",
 		playerSpeed: 0.01,
-		upscale: 3,
+		upscale: 8,
 		worldCache: null,
 	};
 
@@ -108,7 +111,7 @@ SnowDrift.init = function(context) {
 		SnowDrift.Context.canvas.width  = window.innerWidth;
 		SnowDrift.Context.canvas.height = window.innerHeight;
 		SnowDrift.Context.imageSmoothingEnabled = false; // Resets on resize
-		SnowDrift.State.size.scale = SnowDrift.Context.canvas.width/100;
+		SnowDrift.State.size.scale = SnowDrift.Context.canvas.width/200;
 	};
 	window.addEventListener("resize", resizefunc);
 	resizefunc();
@@ -120,13 +123,13 @@ SnowDrift.setup = function() {
 	// Prepare world
 	var splitworld = SnowDrift.Resources.world.trim().split("\n");
 	for(index in splitworld) {
-		SnowDrift.State.world.push(splitworld[index].split(","))
+		SnowDrift.State.world.push(splitworld[index].split(""))
 	}
 
 	SnowDrift.State.worldCache = SnowDrift.renderWorld(SnowDrift.State, SnowDrift.Resources);
 
 	// Prepare player
-	SnowDrift.State.player = new SnowDrift.Entities.Player(10, 10);
+	SnowDrift.State.player = new SnowDrift.Entities.Player(55, 0);
 
 	SnowDrift.loop();
 }
@@ -139,18 +142,23 @@ SnowDrift.events = function(state, context, res) {
 
 	if(Keyboard.once(32)) state.player.jump();
 
-	if(Math.round(state.player.y) < 0 || Math.round(state.player.y) >= state.world.length) {
+	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 1) {
+		alert("You died.")
+	}
+
+	if(Math.round(state.player.y) < 0 || Math.ceil(state.player.y) >= state.world.length) {
 		state.player.y = old.y;
 		state.player.vy = 0;
 	}
-	if(Math.round(state.player.x) < 0 || Math.round(state.player.x) >= state.world[Math.round(state.player.y)].length) {
+	if(Math.round(state.player.x) < 0 || Math.ceil(state.player.x) >= state.world[Math.ceil(state.player.y)].length) {
 		state.player.x = old.x;
 	}
 
 	if(
-		Math.round(state.player.y) >= 0 && Math.round(state.player.y) < state.world.length && 
-		Math.round(state.player.x) >= 0 && Math.round(state.player.x) < state.world[Math.round(state.player.y)].length && 
-		state.world[Math.round(state.player.y)][Math.round(state.player.x)] != 0
+		Math.round(state.player.y) >= 0 && Math.ceil(state.player.y) < state.world.length && 
+		Math.round(state.player.x) >= 0 && Math.ceil(state.player.x+1) < state.world[Math.ceil(state.player.y)].length && 
+		(state.world[Math.round(state.player.y)][Math.round(state.player.x)] > 1 ||
+		state.world[Math.round(state.player.y)][Math.round(state.player.x+1)] > 1)
 	) {
 		state.player.x = old.x;
 		state.player.y = old.y;
@@ -164,18 +172,19 @@ SnowDrift.logic = function(state, context, res) {
 
 	state.player.logic(Timing.delta);
 
-	if(Math.round(state.player.y) < 0 || Math.round(state.player.y) >= state.world.length) {
+	if(Math.round(state.player.y) < 0 || Math.ceil(state.player.y) >= state.world.length) {
 		state.player.y = old.y;
 		state.player.vy = 0;
 	}
-	if(Math.round(state.player.x) < 0 || Math.round(state.player.x) >= state.world[Math.round(state.player.y)].length) {
+	if(Math.round(state.player.x) < 0 || Math.ceil(state.player.x) >= state.world[Math.ceil(state.player.y)].length) {
 		state.player.x = old.x;
 	}
 
 	if(
-		Math.round(state.player.y) >= 0 && Math.round(state.player.y) < state.world.length && 
-		Math.round(state.player.x) >= 0 && Math.round(state.player.x) < state.world[Math.round(state.player.y)].length && 
-		state.world[Math.round(state.player.y)][Math.round(state.player.x)] != 0
+		Math.round(state.player.y) >= 0 && Math.ceil(state.player.y) < state.world.length && 
+		Math.round(state.player.x) >= 0 && Math.ceil(state.player.x+1) < state.world[Math.ceil(state.player.y)].length && 
+		(state.world[Math.round(state.player.y)][Math.round(state.player.x)] > 1 ||
+		state.world[Math.round(state.player.y)][Math.round(state.player.x+1)] > 1)
 	) {
 		state.player.x = old.x;
 		state.player.y = old.y;
@@ -190,8 +199,8 @@ SnowDrift.logic = function(state, context, res) {
 SnowDrift.renderWorld = function(state, res) {
 	var canvas = document.createElement('canvas');
 	canvas.context = canvas.getContext("2d");
-	canvas.width = state.world[0].length * state.upscale * state.size.scale;
-	canvas.height = state.world.length * state.upscale * state.size.scale;
+	canvas.width = state.world[0].length * state.upscale;
+	canvas.height = state.world.length * state.upscale;
 
 	// World
 	for(y in state.world) {
@@ -200,7 +209,7 @@ SnowDrift.renderWorld = function(state, res) {
 			canvas.context.drawImage(
 				res.spritesheet,
 
-				val * (state.spritesize.x + 1), 0,
+				val * state.spritesize.x, 0,
 				state.spritesize.x, state.spritesize.y,
 
 				x * state.upscale,
@@ -221,8 +230,8 @@ SnowDrift.render = function(state, context, res) {
 
 	context.drawImage(
 		state.worldCache,
-		(state.world[0].length/2-state.camera.x) * state.upscale * state.size.scale + (context.canvas.width - state.worldCache.width) / 2,
-		(state.world.length/2-state.camera.y) * state.upscale * state.size.scale + (context.canvas.height - state.worldCache.height) / 2,
+		(-state.camera.x-1) * state.upscale * state.size.scale + (context.canvas.width) / 2,
+		(-state.camera.y) * state.upscale * state.size.scale + (context.canvas.height) / 2,
 		state.size.scale * state.worldCache.width, state.size.scale * state.worldCache.height
 	);
 
