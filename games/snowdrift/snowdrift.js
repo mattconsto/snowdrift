@@ -180,10 +180,10 @@ SnowDrift.setup = function() {
 SnowDrift.events = function(state, context, res) {
 	var old = {x: state.player.x, y: state.player.y}
 
-	if(Keyboard.has(65) && !Keyboard.has(68)) state.player.left(state.playerSpeed * Timing.delta, state); // KeyA
-	if(Keyboard.has(68) && !Keyboard.has(65)) state.player.right(state.playerSpeed * Timing.delta, state); // KeyD
+	if(Keyboard.has(65) && !Keyboard.has(68) || Keyboard.has(37) && !Keyboard.has(39)) state.player.left(state.playerSpeed * Timing.delta, state); // KeyA
+	if(Keyboard.has(68) && !Keyboard.has(65) || Keyboard.has(39) && !Keyboard.has(37)) state.player.right(state.playerSpeed * Timing.delta, state); // KeyD
 
-	if(Keyboard.once(32)) state.player.jump(state);
+	if(Keyboard.once(32) || Keyboard.once(87) || Keyboard.once(38)) state.player.jump(state);
 
 	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 1) {
 		alert("You died.")
