@@ -14,5 +14,9 @@
 	/* c */ {"name": "ship3", "solid": false},
 	/* d */ {"name": "ship4", "solid": false},
 	/* e */ {"name": "blank", "solid": true},
-	/* f */ {"name": "next", "solid": false}
+	/* f */ {"name": "next", "solid": false},
+	/* g */ {"name": "column", "solid": false},
+	/* h */ {"name": "backing", "solid": false},
+	/* i */ {"name": "star1", "solid": false},
+	/* j */ {"name": "star2", "solid": false}
 ]

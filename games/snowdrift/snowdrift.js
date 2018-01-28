@@ -101,7 +101,7 @@ SnowDrift.Entities.Player = function(x, y) {
 		if(!this.canJump || this.jumpTimer > 0) return;
 		this.vy -= 0.0175;
 		this.canJump = false;
-		this.jumpTimer = 500;
+		this.jumpTimer = 650;
 		this.movementTimer = 250;
 		this.movementDirection = "none";
 	}
@@ -152,10 +152,10 @@ SnowDrift.init = function(context) {
 
 	let resizefunc = function() {
 		console.log("Resize");
+		SnowDrift.State.size.scale = Math.min(window.innerWidth, window.innerHeight)/200;
 		SnowDrift.Context.canvas.width  = window.innerWidth;
 		SnowDrift.Context.canvas.height = window.innerHeight;
 		SnowDrift.Context.imageSmoothingEnabled = false; // Resets on resize
-		SnowDrift.State.size.scale = Math.min(SnowDrift.Context.canvas.height, SnowDrift.Context.canvas.width)/200;
 	};
 	window.addEventListener("resize", resizefunc);
 	resizefunc();
