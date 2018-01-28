@@ -7,10 +7,9 @@ var SnowDrift = {
 	Context: {},
 	State: {},
 	Resources: {
-		flag: "flag.png",
 		player: "player.png",
 		spritesheet: "spritesheet.png",
-		world: "world.csv"
+		worlds: ["world.csv", "blank.csv", "win.csv"]
 	},
 	Entities: {}
 };
@@ -136,7 +135,10 @@ SnowDrift.init = function(context) {
 		camera: {x: 0, y: 0},
 		spritesize: {x: 8, y: 8},
 		backgroundColor: "#3388ff",
-		playerSpeed: 0.005,
+		messages: [],
+		messageDelay: 0,
+		messageTimer: 0,
+		playerSpeed: 0.006,
 		upscale: 8,
 		worldCache: null,
 	};
@@ -160,9 +162,27 @@ SnowDrift.init = function(context) {
 	setTimeout(SnowDrift.setup, 500); // Nasty hack to wait for images to load
 }
 
-SnowDrift.setup = function() {
-	// Prepare world
-	var splitworld = SnowDrift.Resources.world.trim().split("\n");
+SnowDrift.loadWorld = function(index) {
+	var s = SnowDrift.Resources.worlds[(index + SnowDrift.Resources.worlds.length) % SnowDrift.Resources.worlds.length].trim();
+	var i = s.indexOf("\n");
+	var splits = [s.slice(0,i), s.slice(i+1)];
+
+	var splitmeta = splits[0].split(" ");
+	splits = splits[1];
+	SnowDrift.State.backgroundColor = splitmeta[2];
+
+	SnowDrift.State.messageTimer = 0;
+	SnowDrift.State.messageDelay = parseInt(splitmeta[4]);
+	SnowDrift.State.messages = [];
+	for(var j = 0; j < parseInt(splitmeta[3]); j++) {
+		var i = splits.indexOf("\n");
+		splits = [splits.slice(0,i), splits.slice(i+1)];
+		SnowDrift.State.messages.push(splits[0]);
+		splits = splits[1];
+	}
+
+	SnowDrift.State.world = [];
+	var splitworld = splits.split("\n");
 	for(index in splitworld) {
 		var line = splitworld[index].split("");
 		for(jndex in line) line[jndex] = parseInt(line[jndex], 36);
@@ -172,8 +192,12 @@ SnowDrift.setup = function() {
 	SnowDrift.State.worldCache = SnowDrift.renderWorld(SnowDrift.State, SnowDrift.Resources);
 
 	// Prepare player
-	SnowDrift.State.player = new SnowDrift.Entities.Player(60, 0);
+	SnowDrift.State.player = new SnowDrift.Entities.Player(parseInt(splitmeta[0]), parseInt(splitmeta[1]));
+}
 
+SnowDrift.setup = function() {
+	// Prepare world
+	SnowDrift.loadWorld(0);
 	SnowDrift.loop();
 }
 
@@ -185,18 +209,28 @@ SnowDrift.events = function(state, context, res) {
 
 	if(Keyboard.once(32) || Keyboard.once(87) || Keyboard.once(38)) state.player.jump(state);
 
-	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 1) {
-		alert("You died.")
-	}
-
-	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 9) {
-		alert("You win!")
+	if(Keyboard.once(82)) {
+		SnowDrift.loadWorld(0);
 	}
 }
 
 /* Game update logic */
 SnowDrift.logic = function(state, context, res) {
 	state.player.logic(Timing.delta,state);
+
+	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 1) {
+		SnowDrift.loadWorld(1);
+	}
+
+	if(state.world[Math.round(state.player.y)][Math.round(state.player.x)] == 9) {
+		SnowDrift.loadWorld(2);
+	}
+
+	state.messageTimer += Timing.delta;
+	if(state.messageTimer >= state.messageDelay && state.messages.length > 1) {
+		state.messageTimer = 0;
+		state.messages.shift();
+	}
 
 	state.camera.x = state.player.x;
 	state.camera.y = state.player.y;
@@ -234,6 +268,12 @@ SnowDrift.render = function(state, context, res) {
 	// Blank
 	context.fillStyle = state.backgroundColor;
 	context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+
+	// Message
+	context.font = (5 * state.size.scale) + "px Arial";
+	context.fillStyle = "#ffffff";
+	context.textAlign = "center"; 
+	context.fillText(state.messages[0], context.canvas.width / 2, 20 * state.size.scale)
 
 	context.drawImage(
 		state.worldCache,
