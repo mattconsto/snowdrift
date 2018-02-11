@@ -160,7 +160,7 @@ SnowDrift.init = function(context) {
 	window.addEventListener("resize", resizefunc);
 	resizefunc();
 
-	setTimeout(SnowDrift.setup, 500); // Nasty hack to wait for images to load
+	setTimeout(SnowDrift.setup, 1500); // Nasty hack to wait for images to load
 }
 
 SnowDrift.loadWorld = function(index) {
