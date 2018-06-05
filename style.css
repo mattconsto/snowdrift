@@ -1,45 +1,8 @@
-/* Font Awesome Icon compatability */
-nav i, nav [class^="mdi-"], nav [class*="mdi-"], nav i.material-icons {
-	display: inline-block;
-	user-select: none;
-}
-
-nav i.material-icons:not(:first-child) {
-	padding: 0 0 0 15px;
-}
-
-nav i.material-icons.fa {
-	position: relative;
-	top: -3px;
-}
-
-/* Nav formatting */
-nav {
-	background: #1f1f1f;
-	position: relative;
-	z-index: 2;
-	overflow: hidden;
-	opacity: 0.8;
-}
-
-@media only screen and (min-width: 601px) {
-	nav .nav-wrapper h1 {
-		height: 64px;
-		line-height: 64px;
-	}
-}
-
-/* Disabled polyfill */
-a[disabled]:not([disabled="false"]) {
-	pointer-events: none;
-	cursor: default;
-	opacity: 0.5;
-}
-
 /* Canvas formatting */
 body {
 	background: #111111;
 	overflow-x: hidden;
+	cursor: none;
 }
 
 html, body {
@@ -52,9 +15,4 @@ html, body {
 	margin: 0 auto;
 	display: block;
 	image-rendering: pixelated;
-}
-
-/* Input */
-#input {
-	font-size: 7px;
 }
